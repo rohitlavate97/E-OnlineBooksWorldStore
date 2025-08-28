@@ -1,6 +1,5 @@
-package com.onlineboostore.model;
+package com.onlinebookstore.model;
 
-import jakarta.persistence.Column;
 import lombok.Data;
 
 @Data

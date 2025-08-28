@@ -85,7 +85,7 @@ mvn spring-boot:run
 
 ### Package Structure
 ```
-com.onlineboostore/
+com.onlinebookstore/
 ├── controller/          # REST controllers
 ├── service/            # Service interfaces
 ├── serviceImpl/        # Service implementations
@@ -313,7 +313,7 @@ public class UserServiceImpl implements UserService {
 ### Application Properties for Debugging
 ```properties
 # Enable debug logging
-logging.level.com.onlineboostore=DEBUG
+logging.level.com.onlinebookstore=DEBUG
 logging.level.org.springframework.web=DEBUG
 
 # Show SQL queries

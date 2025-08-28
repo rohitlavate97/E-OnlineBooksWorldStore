@@ -1,4 +1,4 @@
-package com.onlineboostore.entity;
+package com.onlinebookstore.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

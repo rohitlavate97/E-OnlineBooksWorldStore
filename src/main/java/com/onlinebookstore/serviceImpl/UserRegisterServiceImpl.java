@@ -1,9 +1,9 @@
-package com.onlineboostore.serviceImpl;
+package com.onlinebookstore.serviceImpl;
 
-import com.onlineboostore.entity.UserRegister;
-import com.onlineboostore.model.UserRegData;
-import com.onlineboostore.repository.UserRepository;
-import com.onlineboostore.service.UserRegisterService;
+import com.onlinebookstore.entity.UserRegister;
+import com.onlinebookstore.model.UserRegData;
+import com.onlinebookstore.repository.UserRepository;
+import com.onlinebookstore.service.UserRegisterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

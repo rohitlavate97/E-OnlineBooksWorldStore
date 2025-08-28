@@ -4,6 +4,21 @@
 
 This document provides comprehensive API documentation for the E-OnlineBooksWorldStore application. The API is built using Spring Boot and follows RESTful principles.
 
+## 🚀 Interactive API Documentation
+
+The application includes **Swagger/OpenAPI 3.0** integration for interactive API documentation and testing:
+
+- **Swagger UI**: `http://localhost:7070/swagger-ui.html`
+- **OpenAPI JSON**: `http://localhost:7070/v3/api-docs`
+- **OpenAPI YAML**: `http://localhost:7070/v3/api-docs.yaml`
+
+### Benefits of Swagger Integration
+- **Interactive Testing**: Test API endpoints directly from the browser
+- **Auto-generated Documentation**: Always up-to-date with your code
+- **Request/Response Examples**: See exact data formats and schemas
+- **API Schema**: Complete OpenAPI 3.0 specification
+- **Developer Experience**: Easy API exploration and testing
+
 ## Base URL
 
 ```

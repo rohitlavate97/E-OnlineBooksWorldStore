@@ -1,7 +1,7 @@
-package com.onlineboostore.controller;
+package com.onlinebookstore.controller;
 
-import com.onlineboostore.model.UserRegData;
-import com.onlineboostore.service.UserRegisterService;
+import com.onlinebookstore.model.UserRegData;
+import com.onlinebookstore.service.UserRegisterService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

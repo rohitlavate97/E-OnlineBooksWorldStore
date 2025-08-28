@@ -1,6 +1,6 @@
-package com.onlineboostore.service;
+package com.onlinebookstore.service;
 
-import com.onlineboostore.model.UserRegData;
+import com.onlinebookstore.model.UserRegData;
 
 public interface UserRegisterService {
     public String createUserRegService(UserRegData userRegData);

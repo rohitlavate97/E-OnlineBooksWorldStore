@@ -15,6 +15,7 @@ E-OnlineBooksWorldStore is a web application built with Spring Boot that serves 
 - **Build Tool**: Maven
 - **Lombok**: For reducing boilerplate code
 - **DevTools**: For development convenience
+- **API Documentation**: Swagger/OpenAPI 3.0 with SpringDoc
 
 ## 📋 Prerequisites
 
@@ -70,6 +71,18 @@ mvn spring-boot:run
 
 The application will start on `http://localhost:7070`
 
+### 4. Access Swagger UI
+Once the application is running, you can access the interactive API documentation at:
+```
+http://localhost:7070/swagger-ui.html
+```
+
+The Swagger UI provides:
+- Interactive API testing interface
+- Request/response examples
+- API schema documentation
+- Endpoint testing capabilities
+
 ## 📁 Project Structure
 
 ```
@@ -95,6 +108,12 @@ E-OnlineBooksWorldStore/
 ```
 
 ## 🔌 API Endpoints
+
+### Interactive API Documentation
+The application includes **Swagger/OpenAPI 3.0** documentation accessible at:
+- **Swagger UI**: `http://localhost:7070/swagger-ui.html`
+- **OpenAPI JSON**: `http://localhost:7070/v3/api-docs`
+- **OpenAPI YAML**: `http://localhost:7070/v3/api-docs.yaml`
 
 ### User Registration
 

@@ -31,7 +31,7 @@ spring.datasource.username=dev_user
 spring.datasource.password=dev_password
 spring.jpa.hibernate.ddl-auto=create-drop
 spring.jpa.show-sql=true
-logging.level.com.onlineboostore=DEBUG
+logging.level.com.onlinebookstore=DEBUG
 ```
 
 ### Staging Environment
@@ -44,7 +44,7 @@ spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=false
-logging.level.com.onlineboostore=INFO
+logging.level.com.onlinebookstore=INFO
 ```
 
 ### Production Environment
@@ -57,7 +57,7 @@ spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
 spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.show-sql=false
-logging.level.com.onlineboostore=WARN
+logging.level.com.onlinebookstore=WARN
 logging.file.name=/var/log/ebooksstore/application.log
 logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n
 ```
