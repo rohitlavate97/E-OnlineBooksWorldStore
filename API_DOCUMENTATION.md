@@ -37,7 +37,7 @@ Currently, the API does not require authentication. All endpoints are publicly a
 
 **Endpoint:** `POST /userRegister`
 
-**Description:** Creates a new user account in the system.
+**Description:** Creates a new user account in the system with input validation and proper error handling.
 
 **Request Headers:**
 ```
@@ -61,42 +61,50 @@ Accept: application/json
 |-------|------|----------|-------------|
 | firstName | String | Yes | User's first name (2-50 characters) |
 | lastName | String | Yes | User's last name (2-50 characters) |
-| email | String | Yes | User's email address (must be valid format) |
-| password | String | Yes | User's password (minimum 8 characters) |
+| email | String | Yes | User's email address (must be valid format, cannot be null/empty) |
+| password | String | Yes | User's password (minimum 8 characters, cannot be null/empty) |
 | contactId | Long | No | Reference ID for contact information |
 
 **Response:**
 
-**Success Response (200 OK):**
+**Success Response (201 Created):**
 ```json
 {
-  "message": "User registered successfully",
-  "userId": 12345,
-  "timestamp": "2024-01-15T10:30:00Z"
+  "statusCode": 201,
+  "status": "Success",
+  "message": "User Registered Successfully",
+  "data": {
+    "id": 12345,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "contactId": 12345,
+    "createDate": "2024-01-15T10:30:00Z",
+    "updatedDate": "2024-01-15T10:30:00Z"
+  },
+  "list": null
 }
 ```
 
 **Error Response (400 Bad Request):**
 ```json
 {
-  "error": "Validation failed",
-  "message": "Email is already registered",
-  "timestamp": "2024-01-15T10:30:00Z",
-  "details": [
-    {
-      "field": "email",
-      "message": "Email must be unique"
-    }
-  ]
+  "statusCode": 400,
+  "status": "Failed",
+  "message": "Email and Password cannot be empty",
+  "data": null,
+  "list": null
 }
 ```
 
 **Error Response (500 Internal Server Error):**
 ```json
 {
-  "error": "Internal server error",
-  "message": "Failed to register user",
-  "timestamp": "2024-01-15T10:30:00Z"
+  "statusCode": 500,
+  "status": "Failure",
+  "message": "User Registration Failed: [error details]",
+  "data": null,
+  "list": null
 }
 ```
 
@@ -113,6 +121,25 @@ public class UserRegData {
     private Long contactId;
     
     // Constructors, getters, and setters
+}
+```
+
+### ResponseMessage
+
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ResponseMessage {
+    private Integer statusCode;
+    private String status;
+    private String message;
+    private Object data;
+    private List<?> list;
+    
+    // Constructors for different response types
+    public ResponseMessage(Integer statusCode, String status, String message);
+    public ResponseMessage(Integer statusCode, String status, String message, Object data);
 }
 ```
 
@@ -170,9 +197,16 @@ public class UserRegister {
 
 - **firstName**: Required, 2-50 characters, alphanumeric and spaces only
 - **lastName**: Required, 2-50 characters, alphanumeric and spaces only
-- **email**: Required, valid email format, must be unique
-- **password**: Required, minimum 8 characters, must contain at least one uppercase letter, one lowercase letter, and one number
+- **email**: Required, valid email format, cannot be null or empty, must be unique
+- **password**: Required, minimum 8 characters, cannot be null or empty, must contain at least one uppercase letter, one lowercase letter, and one number
 - **contactId**: Optional, must be a positive integer if provided
+
+### Response Validation
+- **statusCode**: HTTP status code (200, 201, 400, 500)
+- **status**: Must be one of: "Success", "Failed", "Failure"
+- **message**: Required, descriptive response message
+- **data**: Optional, can be null for error responses
+- **list**: Optional, for collection responses
 
 ## Rate Limiting
 

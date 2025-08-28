@@ -118,9 +118,14 @@ The application includes **Swagger/OpenAPI 3.0** documentation accessible at:
 ### User Registration
 
 - **POST** `/userRegister`
-  - **Description**: Register a new user
+  - **Description**: Register a new user with validation
   - **Request Body**: `UserRegData` object
-  - **Response**: Registration confirmation message
+  - **Response**: `ResponseMessage` with status, message, and data
+  - **Validation**: Email and password are required and cannot be empty
+  - **Status Codes**: 
+    - `201` - User created successfully
+    - `400` - Bad request (validation failed)
+    - `500` - Internal server error
 
 #### Request Body Structure
 ```json
@@ -139,11 +144,18 @@ The application includes **Swagger/OpenAPI 3.0** documentation accessible at:
 - `id` - Primary key (auto-generated)
 - `first_name` - User's first name
 - `last_name` - User's last name
-- `email` - User's email address
-- `password` - User's password (should be encrypted in production)
+- `email` - User's email address (required, unique)
+- `password` - User's password (required, Base64 encoded)
 - `contact_id` - Reference to contact information
 - `created_date` - Timestamp when record was created
 - `updated_date` - Timestamp when record was last updated
+
+### ResponseMessage Model
+- `statusCode` - HTTP status code (200, 201, 400, 500)
+- `status` - Status indicator ("Success", "Failed", "Failure")
+- `message` - Human-readable response message
+- `data` - Response data payload (can be null)
+- `list` - List data payload (for collection responses)
 
 ## 🔧 Configuration
 

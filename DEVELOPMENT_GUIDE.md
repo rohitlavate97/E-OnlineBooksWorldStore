@@ -112,20 +112,51 @@ com.onlinebookstore/
 ### Example Code Structure
 ```java
 @RestController
-@RequestMapping("/api/v1/users")
-@Validated
-public class UserController {
+public class UserRegistrationController {
     
-    private final UserService userService;
+    private final UserRegisterService userRegisterService;
     
-    public UserController(UserService userService) {
-        this.userService = userService;
+    public UserRegistrationController(UserRegisterService userRegisterService) {
+        this.userRegisterService = userRegisterService;
     }
     
-    @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
-        UserResponse response = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @PostMapping("/userRegister")
+    public ResponseEntity<ResponseMessage> createUserRegistration(@RequestBody UserRegData userRegData) {
+        try {
+            // Input validation
+            if (userRegData == null || userRegData.getEmail() == null || userRegData.getEmail().isBlank() ||
+                userRegData.getPassword() == null || userRegData.getPassword().isBlank()) {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_BAD_REQUEST, 
+                    Constants.FAILED, 
+                    "Email and Password cannot be empty"
+                ));
+            }
+            
+            // Service call
+            UserRegister user = userRegisterService.createUserRegService(userRegData);
+            
+            if (user != null) {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_CREATED, 
+                    Constants.SUCCESS, 
+                    "User Registered Successfully", 
+                    user
+                ));
+            } else {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_BAD_REQUEST, 
+                    Constants.FAILED, 
+                    "User Registration not saved successfully"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ResponseMessage(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, 
+                Constants.FAILURE, 
+                "User Registration Failed: " + e.getMessage()
+            ));
+        }
     }
 }
 ```
@@ -245,6 +276,35 @@ public class Book {
 }
 ```
 
+### 2. Create Response Model
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class ResponseMessage {
+    private Integer statusCode;
+    private String status;
+    private String message;
+    private Object data;
+    private List<?> list;
+    
+    // Constructor for responses without data
+    public ResponseMessage(Integer statusCode, String status, String message) {
+        this.statusCode = statusCode;
+        this.status = status;
+        this.message = message;
+    }
+    
+    // Constructor for responses with data
+    public ResponseMessage(Integer statusCode, String status, String message, Object data) {
+        this.statusCode = statusCode;
+        this.status = status;
+        this.message = message;
+        this.data = data;
+    }
+}
+```
+
 ### 2. Create Repository
 ```java
 @Repository
@@ -258,10 +318,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 ### 3. Create Service
 ```java
 public interface BookService {
-    BookResponse createBook(BookRequest request);
-    BookResponse getBookById(Long id);
-    List<BookResponse> getAllBooks();
-    BookResponse updateBook(Long id, BookRequest request);
+    Book createBook(BookRequest request);
+    Book getBookById(Long id);
+    List<Book> getAllBooks();
+    Book updateBook(Long id, BookRequest request);
     void deleteBook(Long id);
 }
 ```
@@ -280,15 +340,57 @@ public class BookController {
     }
     
     @PostMapping
-    public ResponseEntity<BookResponse> createBook(@Valid @RequestBody BookRequest request) {
-        BookResponse response = bookService.createBook(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    public ResponseEntity<ResponseMessage> createBook(@Valid @RequestBody BookRequest request) {
+        try {
+            Book book = bookService.createBook(request);
+            if (book != null) {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_CREATED, 
+                    Constants.SUCCESS, 
+                    "Book created successfully", 
+                    book
+                ));
+            } else {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_BAD_REQUEST, 
+                    Constants.FAILED, 
+                    "Failed to create book"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ResponseMessage(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, 
+                Constants.FAILURE, 
+                "Book creation failed: " + e.getMessage()
+            ));
+        }
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<BookResponse> getBook(@PathVariable Long id) {
-        BookResponse response = bookService.getBookById(id);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ResponseMessage> getBook(@PathVariable Long id) {
+        try {
+            Book book = bookService.getBookById(id);
+            if (book != null) {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_OK, 
+                    Constants.SUCCESS, 
+                    "Book retrieved successfully", 
+                    book
+                ));
+            } else {
+                return ResponseEntity.ok(new ResponseMessage(
+                    HttpURLConnection.HTTP_NOT_FOUND, 
+                    Constants.FAILED, 
+                    "Book not found"
+                ));
+            }
+        } catch (Exception e) {
+            return ResponseEntity.ok(new ResponseMessage(
+                HttpURLConnection.HTTP_INTERNAL_ERROR, 
+                Constants.FAILURE, 
+                "Failed to retrieve book: " + e.getMessage()
+            ));
+        }
     }
 }
 ```
@@ -350,6 +452,85 @@ public class UserRequest {
     
     @Email(message = "Email must be valid")
     private String email;
+}
+```
+
+## 🚀 Enhanced API Best Practices
+
+### 1. Standardized Response Format
+Always use the `ResponseMessage` model for consistent API responses:
+```java
+// Success response with data
+return ResponseEntity.ok(new ResponseMessage(
+    HttpURLConnection.HTTP_CREATED, 
+    Constants.SUCCESS, 
+    "Resource created successfully", 
+    createdResource
+));
+
+// Error response without data
+return ResponseEntity.ok(new ResponseMessage(
+    HttpURLConnection.HTTP_BAD_REQUEST, 
+    Constants.FAILED, 
+    "Validation failed: required fields missing"
+));
+```
+
+### 2. Input Validation
+Implement validation at the controller level:
+```java
+@PostMapping
+public ResponseEntity<ResponseMessage> createResource(@RequestBody ResourceRequest request) {
+    try {
+        // Validate required fields
+        if (request == null || request.getName() == null || request.getName().isBlank()) {
+            return ResponseEntity.ok(new ResponseMessage(
+                HttpURLConnection.HTTP_BAD_REQUEST, 
+                Constants.FAILED, 
+                "Name cannot be empty"
+            ));
+        }
+        
+        // Process request
+        Resource resource = service.createResource(request);
+        
+        if (resource != null) {
+            return ResponseEntity.ok(new ResponseMessage(
+                HttpURLConnection.HTTP_CREATED, 
+                Constants.SUCCESS, 
+                "Resource created successfully", 
+                resource
+            ));
+        } else {
+            return ResponseEntity.ok(new ResponseMessage(
+                HttpURLConnection.HTTP_BAD_REQUEST, 
+                Constants.FAILED, 
+                "Failed to create resource"
+            ));
+        }
+    } catch (Exception e) {
+        return ResponseEntity.ok(new ResponseMessage(
+            HttpURLConnection.HTTP_INTERNAL_ERROR, 
+            Constants.FAILURE, 
+            "Creation failed: " + e.getMessage()
+        ));
+    }
+}
+```
+
+### 3. Service Layer Return Types
+Return actual entities instead of strings for better data flow:
+```java
+// Good: Return entity
+public UserRegister createUser(UserRegData userData) {
+    // Implementation
+    return savedUser;
+}
+
+// Avoid: Returning strings
+public String createUser(UserRegData userData) {
+    // Implementation
+    return "User created successfully"; // Not recommended
 }
 ```
 

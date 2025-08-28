@@ -15,7 +15,7 @@ public class UserRegisterServiceImpl implements UserRegisterService {
     private UserRepository userRepository;
 
     @Override
-    public String createUserRegService(UserRegData userRegData) {
+    public UserRegister createUserRegService(UserRegData userRegData) {
         UserRegister user = null;
         try {
             user = new UserRegister();
@@ -25,10 +25,10 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             user.setPassword(Base64.getEncoder().encodeToString(userRegData.getPassword().getBytes()));
             user.setContactId(userRegData.getContactId());
             userRepository.save(user);
-            return "User Registration Successful";
+
         } catch (Exception e) {
             e.printStackTrace();
-            return "User Registration Failed";
         }
+        return user;
     }
 }

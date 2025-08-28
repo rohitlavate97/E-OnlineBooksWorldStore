@@ -10,6 +10,11 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ResponseMessage {
+    public ResponseMessage(Integer statusCode, String status, String message) {
+        this.statusCode = statusCode;
+        this.status = status;
+        this.message = message;
+    }
 
     public ResponseMessage(Integer statusCode, String status, String message, Object data) {
         this.statusCode = statusCode;
