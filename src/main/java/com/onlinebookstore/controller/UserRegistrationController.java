@@ -1,11 +1,16 @@
 package com.onlinebookstore.controller;
 
+import com.onlinebookstore.model.ResponseMessage;
 import com.onlinebookstore.model.UserRegData;
 import com.onlinebookstore.service.UserRegisterService;
+import com.onlinebookstore.utility.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.net.HttpURLConnection;
 
 @RestController
 public class UserRegistrationController {
@@ -13,8 +18,8 @@ public class UserRegistrationController {
     private UserRegisterService userRegisterService;
 
     @PostMapping("/userRegister")
-    public String createUserRegistration(@RequestBody UserRegData userRegData) {
+    public ResponseEntity<ResponseMessage> createUserRegistration(@RequestBody UserRegData userRegData) {
         String userRegService = userRegisterService.createUserRegService(userRegData);
-        return "User registration endpoint";
+        return ResponseEntity.ok(new ResponseMessage(HttpURLConnection.HTTP_CREATED, Constants.SUCCESS, "User Registered Successfully", userRegService));
     }
 }
