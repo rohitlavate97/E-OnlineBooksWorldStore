@@ -1,6 +1,7 @@
 package com.onlinebookstore.serviceImpl;
 
 import com.onlinebookstore.entity.UserRegister;
+import com.onlinebookstore.model.LoginModel;
 import com.onlinebookstore.model.UserRegData;
 import com.onlinebookstore.repository.UserRepository;
 import com.onlinebookstore.service.UserRegisterService;
@@ -30,5 +31,17 @@ public class UserRegisterServiceImpl implements UserRegisterService {
             e.printStackTrace();
         }
         return user;
+    }
+
+    @Override
+    public UserRegister createLoginUser(LoginModel loginModel) {
+        UserRegister userEmail=userRepository.findByEmail(loginModel.getEmail());
+        if(userEmail!=null){
+            String decode=new String(Base64.getDecoder().decode(userEmail.getPassword()));
+            if(decode.equals(loginModel.getPassword())){
+                return userEmail;
+            }
+        }
+        return null;
     }
 }

@@ -203,19 +203,6 @@ EXPOSE 7070
 ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
 
-## 🔮 Future Enhancements
-
-- [ ] Book catalog management
-- [ ] Shopping cart functionality
-- [ ] Order processing system
-- [ ] User authentication and authorization
-- [ ] Payment gateway integration
-- [ ] Admin dashboard
-- [ ] Search and filtering capabilities
-- [ ] User reviews and ratings
-- [ ] Inventory management
-- [ ] Email notifications
-
 ## 🤝 Contributing
 
 1. Fork the repository
