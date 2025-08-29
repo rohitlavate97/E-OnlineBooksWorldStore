@@ -231,3 +231,23 @@ If you have any questions or need support, please:
 ---
 
 **Happy Coding! 📚✨**
+
+## 🔐 Authentication Features
+
+### User Registration
+- Base64 password encoding for secure storage
+- Input validation for email and password
+- Unique email validation
+- Standardized response format
+
+### User Login
+- Base64 password verification
+- Email-based user lookup
+- Secure password comparison
+- Success/failure response messages
+
+### Security Implementation
+- Password encoding using Base64
+- Input validation and sanitization
+- Error handling with proper status codes
+- Standardized response format for consistency

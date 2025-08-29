@@ -455,89 +455,55 @@ public class UserRequest {
 }
 ```
 
-## 🚀 Enhanced API Best Practices
+## 🔐 Authentication Implementation
 
-### 1. Standardized Response Format
-Always use the `ResponseMessage` model for consistent API responses:
+### Password Encoding
+The application uses Base64 encoding for password storage and verification:
+
 ```java
-// Success response with data
-return ResponseEntity.ok(new ResponseMessage(
-    HttpURLConnection.HTTP_CREATED, 
-    Constants.SUCCESS, 
-    "Resource created successfully", 
-    createdResource
-));
+// Encoding password during registration
+String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
 
-// Error response without data
-return ResponseEntity.ok(new ResponseMessage(
-    HttpURLConnection.HTTP_BAD_REQUEST, 
-    Constants.FAILED, 
-    "Validation failed: required fields missing"
-));
+// Decoding and verifying password during login
+String decodedPassword = new String(Base64.getDecoder().decode(storedPassword));
+boolean isValid = decodedPassword.equals(providedPassword);
 ```
 
-### 2. Input Validation
-Implement validation at the controller level:
+### Security Best Practices
+1. Input Validation
+   - Email and password cannot be null or empty
+   - Email format validation
+   - Password minimum length requirements
+
+2. Error Handling
+   - Standardized error responses
+   - Proper HTTP status codes
+   - Informative error messages without exposing sensitive details
+
+3. Response Structure
 ```java
-@PostMapping
-public ResponseEntity<ResponseMessage> createResource(@RequestBody ResourceRequest request) {
-    try {
-        // Validate required fields
-        if (request == null || request.getName() == null || request.getName().isBlank()) {
-            return ResponseEntity.ok(new ResponseMessage(
-                HttpURLConnection.HTTP_BAD_REQUEST, 
-                Constants.FAILED, 
-                "Name cannot be empty"
-            ));
-        }
-        
-        // Process request
-        Resource resource = service.createResource(request);
-        
-        if (resource != null) {
-            return ResponseEntity.ok(new ResponseMessage(
-                HttpURLConnection.HTTP_CREATED, 
-                Constants.SUCCESS, 
-                "Resource created successfully", 
-                resource
-            ));
-        } else {
-            return ResponseEntity.ok(new ResponseMessage(
-                HttpURLConnection.HTTP_BAD_REQUEST, 
-                Constants.FAILED, 
-                "Failed to create resource"
-            ));
-        }
-    } catch (Exception e) {
-        return ResponseEntity.ok(new ResponseMessage(
-            HttpURLConnection.HTTP_INTERNAL_ERROR, 
-            Constants.FAILURE, 
-            "Creation failed: " + e.getMessage()
-        ));
-    }
+public class ResponseMessage {
+    private Integer statusCode;  // HTTP status code
+    private String status;      // Success/Failed/Failure
+    private String message;     // User-friendly message
+    private Object data;        // Response payload
+    private List<?> list;       // For collection responses
 }
 ```
 
-### 3. Service Layer Return Types
-Return actual entities instead of strings for better data flow:
-```java
-// Good: Return entity
-public UserRegister createUser(UserRegData userData) {
-    // Implementation
-    return savedUser;
-}
+### Authentication Flow
+1. Registration:
+   - Validate input data
+   - Encode password
+   - Save user details
+   - Return success response with user data
 
-// Avoid: Returning strings
-public String createUser(UserRegData userData) {
-    // Implementation
-    return "User created successfully"; // Not recommended
-}
-```
-
-### SQL Injection Prevention
-- Use JPA repositories (already implemented)
-- Avoid raw SQL queries
-- Use parameterized queries if raw SQL is necessary
+2. Login:
+   - Validate input credentials
+   - Find user by email
+   - Decode stored password
+   - Compare with provided password
+   - Return user details on success
 
 ## 📚 Useful Resources
 
