@@ -3,11 +3,10 @@ package com.onlinebookstore.controller;
 import com.onlinebookstore.entity.Files;
 import com.onlinebookstore.repository.FileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
@@ -45,5 +44,20 @@ public class FileController {
         }).collect(Collectors.toList());
 //        return ResponseEntity.status(HttpStatus.OK).body(message.toString());
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/getfiles/{id}")
+    public ResponseEntity<byte[]> getFileById(@PathVariable Long id) {
+        Files file = fileRepository.findById(id).orElse(null);
+        if (file != null) {
+//            return ResponseEntity.ok()
+//                    .header("Content-Disposition", "attachment; filename=\"" + file.getFileName() + "\"")
+//                    .body(file.getData());
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,"attachment; filename=\"" + file.getFileName() + "\"")
+                    .body(file.getData());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
     }
 }
