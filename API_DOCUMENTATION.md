@@ -1,5 +1,10 @@
 # API Documentation
 
+## Project Information
+- **Version:** 0.0.1-SNAPSHOT
+- **Spring Boot Version:** 3.5.5
+- **Java Version:** 17
+
 ## Overview
 
 This document provides comprehensive API documentation for the E-OnlineBooksWorldStore application. The API is built using Spring Boot and follows RESTful principles.
@@ -65,7 +70,12 @@ Accept: application/json
 | password | String | Yes | User's password (minimum 8 characters, cannot be null/empty) |
 | contactId | Long | No | Reference ID for contact information |
 
-**Response:**
+**Response Codes:**
+| Status Code | Description |
+|-------------|-------------|
+| 201 | User successfully registered |
+| 400 | Bad Request - Invalid input data |
+| 500 | Internal Server Error |
 
 **Success Response (201 Created):**
 ```json
@@ -81,8 +91,7 @@ Accept: application/json
     "contactId": 12345,
     "createDate": "2024-01-15T10:30:00Z",
     "updatedDate": "2024-01-15T10:30:00Z"
-  },
-  "list": null
+  }
 }
 ```
 
@@ -92,19 +101,68 @@ Accept: application/json
   "statusCode": 400,
   "status": "Failed",
   "message": "Email and Password cannot be empty",
-  "data": null,
-  "list": null
+  "data": null
 }
 ```
 
-**Error Response (500 Internal Server Error):**
+### 2. User Login
+
+#### Authenticate User
+
+**Endpoint:** `POST /login`
+
+**Description:** Authenticates user credentials and provides access to the E-commerce online BookStore.
+
+**Request Headers:**
+```
+Content-Type: application/json
+Accept: application/json
+```
+
+**Request Body:**
 ```json
 {
-  "statusCode": 500,
-  "status": "Failure",
-  "message": "User Registration Failed: [error details]",
-  "data": null,
-  "list": null
+  "email": "john.doe@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Request Body Schema:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| email | String | Yes | Registered email address |
+| password | String | Yes | User's password |
+
+**Response Codes:**
+| Status Code | Description |
+|-------------|-------------|
+| 201 | Login successful |
+| 400 | Invalid credentials or missing data |
+| 500 | Internal Server Error |
+
+**Success Response (201 Created):**
+```json
+{
+  "statusCode": 201,
+  "status": "Success",
+  "message": "User Login Successfully, welcome to E-commerce online BooksStore",
+  "data": {
+    "id": 12345,
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john.doe@example.com",
+    "contactId": 12345
+  }
+}
+```
+
+**Error Response (400 Bad Request):**
+```json
+{
+  "statusCode": 400,
+  "status": "Failed",
+  "message": "Invalid Email and Password",
+  "data": null
 }
 ```
 
@@ -178,134 +236,41 @@ public class UserRegister {
 }
 ```
 
-## Error Codes
+## Error Handling
 
-| HTTP Status Code | Description | Common Causes |
-|------------------|-------------|---------------|
-| 200 | OK | Request successful |
-| 201 | Created | Resource created successfully |
-| 400 | Bad Request | Invalid request data or validation failed |
-| 401 | Unauthorized | Authentication required (future implementation) |
-| 403 | Forbidden | Access denied (future implementation) |
-| 404 | Not Found | Resource not found |
-| 409 | Conflict | Resource already exists (e.g., duplicate email) |
-| 500 | Internal Server Error | Server-side error |
+The API uses standard HTTP status codes and returns detailed error messages in a consistent format:
 
-## Validation Rules
-
-### User Registration Validation
-
-- **firstName**: Required, 2-50 characters, alphanumeric and spaces only
-- **lastName**: Required, 2-50 characters, alphanumeric and spaces only
-- **email**: Required, valid email format, cannot be null or empty, must be unique
-- **password**: Required, minimum 8 characters, cannot be null or empty, must contain at least one uppercase letter, one lowercase letter, and one number
-- **contactId**: Optional, must be a positive integer if provided
-
-### Response Validation
-- **statusCode**: HTTP status code (200, 201, 400, 500)
-- **status**: Must be one of: "Success", "Failed", "Failure"
-- **message**: Required, descriptive response message
-- **data**: Optional, can be null for error responses
-- **list**: Optional, for collection responses
-
-## Rate Limiting
-
-Currently, no rate limiting is implemented. Future versions may include:
-- 100 requests per minute per IP address
-- 1000 requests per hour per IP address
-
-## Testing the API
-
-### Using cURL
-
-```bash
-# Register a new user
-curl -X POST http://localhost:7070/userRegister \
-  -H "Content-Type: application/json" \
-  -d '{
-    "firstName": "Jane",
-    "lastName": "Smith",
-    "email": "jane.smith@example.com",
-    "password": "SecurePass123",
-    "contactId": 67890
-  }'
-```
-
-### Using Postman
-
-1. Create a new POST request
-2. Set URL to: `http://localhost:7070/userRegister`
-3. Set Headers: `Content-Type: application/json`
-4. Set Body (raw JSON):
 ```json
 {
-  "firstName": "Jane",
-  "lastName": "Smith",
-  "email": "jane.smith@example.com",
-  "password": "SecurePass123",
-  "contactId": 67890
+  "statusCode": <HTTP_STATUS_CODE>,
+  "status": "Failed",
+  "message": "<Error Message>",
+  "data": null
 }
 ```
 
-### Using JavaScript/Fetch
+## Rate Limiting
 
-```javascript
-const userData = {
-  firstName: "Jane",
-  lastName: "Smith",
-  email: "jane.smith@example.com",
-  password: "SecurePass123",
-  contactId: 67890
-};
+Currently, there are no rate limits implemented on the API endpoints.
 
-fetch('http://localhost:7070/userRegister', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(userData)
-})
-.then(response => response.json())
-.then(data => console.log('Success:', data))
-.catch((error) => console.error('Error:', error));
-```
+## API Versioning
 
-## Future API Endpoints
+The current API version is v1 (implicit in the base URL). Future versions will be explicitly versioned in the URL path.
 
-The following endpoints are planned for future releases:
+## Best Practices
 
-### User Management
-- `GET /users` - List all users
-- `GET /users/{id}` - Get user by ID
-- `PUT /users/{id}` - Update user
-- `DELETE /users/{id}` - Delete user
-- `POST /users/login` - User authentication
-
-### Book Management
-- `GET /books` - List all books
-- `GET /books/{id}` - Get book by ID
-- `POST /books` - Add new book
-- `PUT /books/{id}` - Update book
-- `DELETE /books/{id}` - Delete book
-
-### Shopping Cart
-- `GET /cart` - Get user's cart
-- `POST /cart/items` - Add item to cart
-- `PUT /cart/items/{id}` - Update cart item
-- `DELETE /cart/items/{id}` - Remove item from cart
-
-### Orders
-- `GET /orders` - List user's orders
-- `GET /orders/{id}` - Get order details
-- `POST /orders` - Create new order
-- `PUT /orders/{id}/status` - Update order status
+1. Always include the Content-Type header in requests
+2. Handle all possible response status codes in your client
+3. Implement proper error handling for failed requests
+4. Store sensitive data securely
+5. Use HTTPS in production environments
 
 ## Support
 
-For API support or questions:
-1. Check the [Issues](https://github.com/rohitlavate97/E-OnlineBooksWorldStore/issues) page
-2. Create a new issue with the "API" label
-3. Contact the development team
+For API support or issues, please:
+1. Check the Swagger documentation
+2. Review this documentation thoroughly
+3. Contact the development team if issues persist
 
 ---
 

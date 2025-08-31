@@ -1,542 +1,205 @@
 # Development Guide
 
-## 🚀 Getting Started for Developers
+## Setup and Installation
 
-This guide will help you set up the development environment and start contributing to the E-OnlineBooksWorldStore project.
+### Prerequisites
+- Java 17
+- Maven 3.6.x or higher
+- MySQL 8.0 or higher
+- Your favorite IDE (IntelliJ IDEA, Eclipse, or VS Code)
+- Git
 
-## 📋 Development Prerequisites
+### Project Dependencies
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.5</version>
+</parent>
+```
 
-### Required Software
-- **Java Development Kit (JDK) 17** or higher
-- **Maven 3.6+**
-- **MySQL 8.0+**
-- **Git 2.20+**
-- **IDE**: IntelliJ IDEA, Eclipse, or VS Code
+### Local Development Setup
 
-### Recommended IDE Setup
-
-#### IntelliJ IDEA
-1. Install IntelliJ IDEA Community or Ultimate
-2. Install Lombok plugin
-3. Enable annotation processing in Settings → Build, Execution, Deployment → Compiler → Annotation Processors
-4. Import project as Maven project
-
-#### Eclipse
-1. Install Eclipse IDE for Enterprise Java Developers
-2. Install Lombok plugin
-3. Import project as Maven project
-
-#### VS Code
-1. Install VS Code
-2. Install Java Extension Pack
-3. Install Spring Boot Extension Pack
-4. Install Lombok Annotations Support
-
-## 🔧 Environment Setup
-
-### 1. Clone the Repository
+1. Clone the repository:
 ```bash
-git clone https://github.com/rohitlavate97/E-OnlineBooksWorldStore.git
+git clone <repository-url>
 cd E-OnlineBooksWorldStore
 ```
 
-### 2. Database Setup
-```bash
-# Start MySQL service
-sudo systemctl start mysql
-
-# Access MySQL
-mysql -u root -p
-
-# Create database (optional - will be auto-created)
-CREATE DATABASE ebooksstore;
-```
-
-### 3. Configuration
-Update `src/main/resources/application.properties`:
+2. Configure database:
+   Create `application.properties` in `src/main/resources`:
 ```properties
-spring.datasource.username=your_username
+spring.application.name=E-OnlineBooksWorldStore
+server.port=7070
+spring.datasource.url=jdbc:mysql://localhost:3306/ebooksstore?createDatabaseIfNotExist=true
+spring.datasource.username=root
 spring.datasource.password=your_password
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
 ```
 
-### 4. Build and Run
+3. Build the project:
 ```bash
-# Clean and compile
-mvn clean compile
+mvn clean install
+```
 
-# Run the application
+4. Run the application:
+```bash
 mvn spring-boot:run
 ```
 
-## 🏗️ Project Architecture
-
-### Layered Architecture
+## Project Structure
 ```
-┌─────────────────────────────────────┐
-│           Controller Layer          │ ← REST API endpoints
-├─────────────────────────────────────┤
-│            Service Layer            │ ← Business logic
-├─────────────────────────────────────┤
-│          Repository Layer           │ ← Data access
-├─────────────────────────────────────┤
-│            Entity Layer             │ ← Data models
-└─────────────────────────────────────┘
+src/
+├── main/
+│   ├── java/
+│   │   └── com/
+│   │       └── onlinebookstore/
+│   │           ├── EOnlineBooksWorldStoreApplication.java
+│   │           ├── SwaggerConfig.java
+│   │           ├── controller/
+│   │           │   └── UserRegistrationController.java
+│   │           ├── entity/
+│   │           │   └── UserRegister.java
+│   │           ├── model/
+│   │           │   ├── LoginModel.java
+│   │           │   ├── ResponseMessage.java
+│   │           │   └── UserRegData.java
+│   │           ├── repository/
+│   │           │   └── UserRepository.java
+│   │           ├── service/
+│   │           │   └── UserRegisterService.java
+│   │           ├── serviceImpl/
+│   │           │   └── UserRegisterServiceImpl.java
+│   │           └── utility/
+│   │               └── Constants.java
+│   └── resources/
+│       ├── application.properties
+│       └── banner.txt
 ```
 
-### Package Structure
-```
-com.onlinebookstore/
-├── controller/          # REST controllers
-├── service/            # Service interfaces
-├── serviceImpl/        # Service implementations
-├── repository/         # Data access repositories
-├── entity/             # JPA entities
-├── model/              # DTOs and request/response models
-└── utility/            # Utility classes
-```
+## Coding Standards
 
-## 📝 Coding Standards
+### General Guidelines
+1. Follow Java naming conventions
+2. Use meaningful names for classes, methods, and variables
+3. Keep methods focused and single-responsibility
+4. Write unit tests for new functionality
+5. Document public APIs using Swagger annotations
 
-### Java Code Style
-- Follow Java naming conventions
-- Use meaningful variable and method names
+### Code Formatting
+- Use 4 spaces for indentation
 - Maximum line length: 120 characters
-- Indentation: 4 spaces (no tabs)
+- Use proper spacing around operators
+- Group related methods together
 
-### Spring Boot Best Practices
-- Use constructor injection instead of field injection
-- Implement proper exception handling
-- Use validation annotations for DTOs
-- Follow REST API design principles
+### Best Practices
+1. **Exception Handling**
+   - Use custom exceptions for business logic
+   - Always log exceptions with proper context
+   - Return appropriate HTTP status codes
 
-### Example Code Structure
-```java
-@RestController
-public class UserRegistrationController {
-    
-    private final UserRegisterService userRegisterService;
-    
-    public UserRegistrationController(UserRegisterService userRegisterService) {
-        this.userRegisterService = userRegisterService;
-    }
-    
-    @PostMapping("/userRegister")
-    public ResponseEntity<ResponseMessage> createUserRegistration(@RequestBody UserRegData userRegData) {
-        try {
-            // Input validation
-            if (userRegData == null || userRegData.getEmail() == null || userRegData.getEmail().isBlank() ||
-                userRegData.getPassword() == null || userRegData.getPassword().isBlank()) {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_BAD_REQUEST, 
-                    Constants.FAILED, 
-                    "Email and Password cannot be empty"
-                ));
-            }
-            
-            // Service call
-            UserRegister user = userRegisterService.createUserRegService(userRegData);
-            
-            if (user != null) {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_CREATED, 
-                    Constants.SUCCESS, 
-                    "User Registered Successfully", 
-                    user
-                ));
-            } else {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_BAD_REQUEST, 
-                    Constants.FAILED, 
-                    "User Registration not saved successfully"
-                ));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.ok(new ResponseMessage(
-                HttpURLConnection.HTTP_INTERNAL_ERROR, 
-                Constants.FAILURE, 
-                "User Registration Failed: " + e.getMessage()
-            ));
-        }
-    }
-}
-```
+2. **API Design**
+   - Follow RESTful principles
+   - Use proper HTTP methods (GET, POST, PUT, DELETE)
+   - Version your APIs
+   - Document using Swagger annotations
 
-## 🧪 Testing
+3. **Security**
+   - Sanitize input data
+   - Use prepared statements
+   - Hash passwords before storing
+   - Implement proper authentication/authorization
 
-### Unit Testing
+4. **Testing**
+   - Write unit tests for services
+   - Write integration tests for controllers
+   - Maintain test coverage above 80%
+
+## Git Workflow
+
+1. **Branch Naming**
+   - Feature: `feature/description`
+   - Bugfix: `fix/description`
+   - Hotfix: `hotfix/description`
+
+2. **Commit Messages**
+   - Start with a verb (Add, Update, Fix, Remove)
+   - Be descriptive but concise
+   - Reference issue numbers
+
+3. **Pull Request Process**
+   - Create PR against develop branch
+   - Add description of changes
+   - Request review from team members
+   - Address review comments
+   - Squash commits before merging
+
+## Building and Testing
+
+### Build Commands
 ```bash
-# Run all tests
+# Clean and install
+mvn clean install
+
+# Run tests
 mvn test
 
 # Run specific test class
-mvn test -Dtest=UserServiceTest
+mvn test -Dtest=TestClassName
 
-# Run tests with coverage
-mvn jacoco:report
+# Generate test coverage report
+mvn verify
 ```
 
-### Test Structure
-```
-src/test/java/
-└── com/onlineboostore/
-    ├── controller/      # Controller tests
-    ├── service/         # Service tests
-    ├── repository/      # Repository tests
-    └── integration/     # Integration tests
-```
+### Testing Guidelines
+1. Write unit tests for:
+   - Service layer logic
+   - Complex utility methods
+   - Data transformations
 
-### Example Test
-```java
-@ExtendWith(MockitoExtension.class)
-class UserServiceTest {
-    
-    @Mock
-    private UserRepository userRepository;
-    
-    @InjectMocks
-    private UserServiceImpl userService;
-    
-    @Test
-    void createUser_ValidData_ReturnsUser() {
-        // Given
-        UserRequest request = new UserRequest("John", "Doe", "john@example.com");
-        User user = new User(1L, "John", "Doe", "john@example.com");
-        
-        when(userRepository.save(any(User.class))).thenReturn(user);
-        
-        // When
-        UserResponse response = userService.createUser(request);
-        
-        // Then
-        assertThat(response.getId()).isEqualTo(1L);
-        assertThat(response.getFirstName()).isEqualTo("John");
-        verify(userRepository).save(any(User.class));
-    }
-}
-```
+2. Write integration tests for:
+   - REST endpoints
+   - Database operations
+   - External service integrations
 
-## 🔄 Development Workflow
+## Debugging
 
-### 1. Feature Development
-```bash
-# Create feature branch
-git checkout -b feature/user-authentication
+1. **Local Debugging**
+   - Use IDE debugger
+   - Enable debug logs in application.properties
+   - Use actuator endpoints for monitoring
 
-# Make changes and commit
-git add .
-git commit -m "feat: add user authentication endpoint"
+2. **Common Issues**
+   - Database connection problems
+   - Authentication issues
+   - API response errors
 
-# Push to remote
-git push origin feature/user-authentication
-```
+## Documentation
 
-### 2. Pull Request Process
-1. Create pull request from feature branch to main
-2. Add description of changes
-3. Request code review
-4. Address review comments
-5. Merge after approval
+1. Keep API documentation updated
+2. Document configuration changes
+3. Update README.md for major changes
+4. Use proper JavaDoc comments
 
-### 3. Commit Message Convention
-```
-type(scope): description
+## Performance Considerations
 
-feat: add new feature
-fix: bug fix
-docs: documentation changes
-style: code style changes
-refactor: code refactoring
-test: add or update tests
-chore: maintenance tasks
-```
+1. Use caching where appropriate
+2. Optimize database queries
+3. Implement pagination for large datasets
+4. Monitor memory usage
 
-## 🚀 Adding New Features
+## Deployment
 
-### 1. Create Entity
-```java
-@Entity
-@Table(name = "books")
-@Data
-public class Book {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    
-    @Column(name = "title", nullable = false)
-    private String title;
-    
-    @Column(name = "author", nullable = false)
-    private String author;
-    
-    @Column(name = "isbn", unique = true)
-    private String isbn;
-    
-    @Column(name = "price", precision = 10, scale = 2)
-    private BigDecimal price;
-}
-```
+1. Build production-ready artifact
+2. Update configuration for production
+3. Follow security best practices
+4. Set up monitoring and logging
 
-### 2. Create Response Model
-```java
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class ResponseMessage {
-    private Integer statusCode;
-    private String status;
-    private String message;
-    private Object data;
-    private List<?> list;
-    
-    // Constructor for responses without data
-    public ResponseMessage(Integer statusCode, String status, String message) {
-        this.statusCode = statusCode;
-        this.status = status;
-        this.message = message;
-    }
-    
-    // Constructor for responses with data
-    public ResponseMessage(Integer statusCode, String status, String message, Object data) {
-        this.statusCode = statusCode;
-        this.status = status;
-        this.message = message;
-        this.data = data;
-    }
-}
-```
+## Support
 
-### 2. Create Repository
-```java
-@Repository
-public interface BookRepository extends JpaRepository<Book, Long> {
-    Optional<Book> findByIsbn(String isbn);
-    List<Book> findByAuthorContainingIgnoreCase(String author);
-    List<Book> findByTitleContainingIgnoreCase(String title);
-}
-```
-
-### 3. Create Service
-```java
-public interface BookService {
-    Book createBook(BookRequest request);
-    Book getBookById(Long id);
-    List<Book> getAllBooks();
-    Book updateBook(Long id, BookRequest request);
-    void deleteBook(Long id);
-}
-```
-
-### 4. Create Controller
-```java
-@RestController
-@RequestMapping("/api/v1/books")
-@Validated
-public class BookController {
-    
-    private final BookService bookService;
-    
-    public BookController(BookService bookService) {
-        this.bookService = bookService;
-    }
-    
-    @PostMapping
-    public ResponseEntity<ResponseMessage> createBook(@Valid @RequestBody BookRequest request) {
-        try {
-            Book book = bookService.createBook(request);
-            if (book != null) {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_CREATED, 
-                    Constants.SUCCESS, 
-                    "Book created successfully", 
-                    book
-                ));
-            } else {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_BAD_REQUEST, 
-                    Constants.FAILED, 
-                    "Failed to create book"
-                ));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.ok(new ResponseMessage(
-                HttpURLConnection.HTTP_INTERNAL_ERROR, 
-                Constants.FAILURE, 
-                "Book creation failed: " + e.getMessage()
-            ));
-        }
-    }
-    
-    @GetMapping("/{id}")
-    public ResponseEntity<ResponseMessage> getBook(@PathVariable Long id) {
-        try {
-            Book book = bookService.getBookById(id);
-            if (book != null) {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_OK, 
-                    Constants.SUCCESS, 
-                    "Book retrieved successfully", 
-                    book
-                ));
-            } else {
-                return ResponseEntity.ok(new ResponseMessage(
-                    HttpURLConnection.HTTP_NOT_FOUND, 
-                    Constants.FAILED, 
-                    "Book not found"
-                ));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.ok(new ResponseMessage(
-                HttpURLConnection.HTTP_INTERNAL_ERROR, 
-                Constants.FAILURE, 
-                "Failed to retrieve book: " + e.getMessage()
-            ));
-        }
-    }
-}
-```
-
-## 🔍 Debugging
-
-### Logging
-```java
-@Slf4j
-@Service
-public class UserServiceImpl implements UserService {
-    
-    public UserResponse createUser(UserRequest request) {
-        log.info("Creating user with email: {}", request.getEmail());
-        // ... implementation
-        log.info("User created successfully with ID: {}", user.getId());
-        return response;
-    }
-}
-```
-
-### Application Properties for Debugging
-```properties
-# Enable debug logging
-logging.level.com.onlinebookstore=DEBUG
-logging.level.org.springframework.web=DEBUG
-
-# Show SQL queries
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-
-# Enable H2 console (for development)
-spring.h2.console.enabled=true
-```
-
-## 📊 Performance Considerations
-
-### Database Optimization
-- Use appropriate indexes
-- Implement pagination for large datasets
-- Use lazy loading for relationships
-- Implement caching where appropriate
-
-### API Optimization
-- Implement response compression
-- Use DTOs to limit data transfer
-- Implement proper error handling
-- Add request/response logging
-
-## 🔒 Security Best Practices
-
-### Input Validation
-```java
-@Valid
-public class UserRequest {
-    @NotBlank(message = "First name is required")
-    @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
-    private String firstName;
-    
-    @Email(message = "Email must be valid")
-    private String email;
-}
-```
-
-## 🔐 Authentication Implementation
-
-### Password Encoding
-The application uses Base64 encoding for password storage and verification:
-
-```java
-// Encoding password during registration
-String encodedPassword = Base64.getEncoder().encodeToString(password.getBytes());
-
-// Decoding and verifying password during login
-String decodedPassword = new String(Base64.getDecoder().decode(storedPassword));
-boolean isValid = decodedPassword.equals(providedPassword);
-```
-
-### Security Best Practices
-1. Input Validation
-   - Email and password cannot be null or empty
-   - Email format validation
-   - Password minimum length requirements
-
-2. Error Handling
-   - Standardized error responses
-   - Proper HTTP status codes
-   - Informative error messages without exposing sensitive details
-
-3. Response Structure
-```java
-public class ResponseMessage {
-    private Integer statusCode;  // HTTP status code
-    private String status;      // Success/Failed/Failure
-    private String message;     // User-friendly message
-    private Object data;        // Response payload
-    private List<?> list;       // For collection responses
-}
-```
-
-### Authentication Flow
-1. Registration:
-   - Validate input data
-   - Encode password
-   - Save user details
-   - Return success response with user data
-
-2. Login:
-   - Validate input credentials
-   - Find user by email
-   - Decode stored password
-   - Compare with provided password
-   - Return user details on success
-
-## 📚 Useful Resources
-
-### Spring Boot Documentation
-- [Spring Boot Reference](https://docs.spring.io/spring-boot/docs/current/reference/html/)
-- [Spring Data JPA](https://docs.spring.io/spring-data/jpa/docs/current/reference/html/)
-- [Spring Web](https://docs.spring.io/spring-framework/docs/current/reference/html/web.html)
-
-### Java Resources
-- [Java Documentation](https://docs.oracle.com/en/java/)
-- [Effective Java](https://www.amazon.com/Effective-Java-Joshua-Bloch/dp/0134685997)
-
-### Tools
-- [Maven Documentation](https://maven.apache.org/guides/)
-- [MySQL Documentation](https://dev.mysql.com/doc/)
-
-## 🤝 Contributing
-
-### Code Review Checklist
-- [ ] Code follows project standards
-- [ ] Tests are included and passing
-- [ ] Documentation is updated
-- [ ] No security vulnerabilities
-- [ ] Performance considerations addressed
-
-### Getting Help
+For development support:
 1. Check existing documentation
-2. Search existing issues
-3. Create new issue with detailed description
-4. Ask in project discussions
-
----
-
-**Happy Coding! 🚀✨**
-
-For questions or support, please refer to the main [README.md](README.md) or create an issue in the repository.
+2. Review similar issues in issue tracker
+3. Contact team lead for clarification
