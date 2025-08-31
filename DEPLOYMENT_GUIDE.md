@@ -1,7 +1,27 @@
 # Deployment Guide
 
 ## Overview
-This guide provides instructions for deploying the E-OnlineBooksWorldStore application to various environments.
+This guide provides comprehensive instructions for deploying the E-OnlineBooksWorldStore application in various environments.
+
+## Environments
+
+### 1. Development
+- Local development environment
+- Debugging enabled
+- H2 in-memory database option available
+- Hot reload enabled
+
+### 2. Staging
+- Pre-production testing
+- Production-like configuration
+- Separate database instance
+- Limited resources
+
+### 3. Production
+- Live environment
+- Optimized performance
+- High availability setup
+- Proper security measures
 
 ## Prerequisites
 - Java 17 or higher
@@ -9,234 +29,279 @@ This guide provides instructions for deploying the E-OnlineBooksWorldStore appli
 - Maven 3.6.x or higher
 - Server environment (Linux/Windows)
 - SSL certificate for HTTPS
+- Minimum 2GB RAM
+- 10GB disk space
 
-## Environment Setup
+## Pre-deployment Checklist
+
+### 1. Environment Verification
+- [ ] Java version check
+- [ ] Maven installation
+- [ ] Database backup
+- [ ] SSL certificates
+- [ ] Firewall configuration
+- [ ] Disk space verification
+- [ ] System dependencies
+
+### 2. Configuration Files
+- [ ] Database credentials
+- [ ] Application properties
+- [ ] Logging configuration
+- [ ] SSL configuration
+- [ ] Environment variables
+
+### 3. Security Measures
+- [ ] SSL/TLS setup
+- [ ] Firewall rules
+- [ ] Database access restrictions
+- [ ] Application user permissions
+- [ ] Backup strategy
+
+## Deployment Steps
 
 ### 1. Database Setup
+
 ```sql
+-- Create Database
 CREATE DATABASE ebooksstore;
-CREATE USER 'ebooksstore_user'@'localhost' IDENTIFIED BY 'your_password';
+
+-- Create User
+CREATE USER 'ebooksstore_user'@'localhost' IDENTIFIED BY 'your_secure_password';
+
+-- Grant Privileges
 GRANT ALL PRIVILEGES ON ebooksstore.* TO 'ebooksstore_user'@'localhost';
 FLUSH PRIVILEGES;
+
+-- Verify
+SHOW GRANTS FOR 'ebooksstore_user'@'localhost';
 ```
 
 ### 2. Application Properties
-Create environment-specific properties files:
-- `application-dev.properties`
-- `application-staging.properties`
-- `application-prod.properties`
 
-Example production configuration:
+Create environment-specific properties:
+
+#### Development (application-dev.properties)
 ```properties
-# Application Configuration
+# Application
 spring.application.name=E-OnlineBooksWorldStore
 server.port=7070
 
-# Database Configuration
+# Database
 spring.datasource.url=jdbc:mysql://localhost:3306/ebooksstore?createDatabaseIfNotExist=true
 spring.datasource.username=ebooksstore_user
 spring.datasource.password=your_password
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA/Hibernate
 spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=false
+spring.jpa.show-sql=true
 
-# Logging Configuration
+# Logging
 logging.level.root=INFO
-logging.file.name=/var/log/ebooksstore/application.log
-
-# Security Configuration (if implemented)
-#spring.security.user.name=admin
-#spring.security.user.password=secure_password
-
-# SSL Configuration (for production)
-#server.ssl.key-store=/path/to/keystore.p12
-#server.ssl.key-store-password=keystore_password
-#server.ssl.keyStoreType=PKCS12
+logging.level.com.onlinebookstore=DEBUG
 ```
 
-## Build Process
+#### Production (application-prod.properties)
+```properties
+# Application
+spring.application.name=E-OnlineBooksWorldStore
+server.port=7070
 
-### 1. Create Production Build
+# Database
+spring.datasource.url=jdbc:mysql://prod-db-server:3306/ebooksstore
+spring.datasource.username=${DB_USERNAME}
+spring.datasource.password=${DB_PASSWORD}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA/Hibernate
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.show-sql=false
+
+# Logging
+logging.level.root=WARN
+logging.level.com.onlinebookstore=INFO
+logging.file.name=/var/log/ebooksstore/application.log
+
+# SSL Configuration
+server.ssl.key-store=/etc/ssl/ebooksstore.p12
+server.ssl.key-store-password=${SSL_PASSWORD}
+server.ssl.keyStoreType=PKCS12
+```
+
+### 3. Build Process
+
 ```bash
 # Clean and package
 mvn clean package -DskipTests
 
-# Create production build with specific profile
+# Build for specific environment
 mvn clean package -P prod -DskipTests
 ```
 
-### 2. Verify Build
-```bash
-java -jar target/E-OnlineBooksWorldStore-1.0.0.jar --version
-```
+### 4. Deployment Process
 
-## Deployment Steps
+#### Manual Deployment
 
-### 1. Manual Deployment
-
-#### Pre-deployment Checklist
-- [ ] Database backup
-- [ ] Configuration files ready
-- [ ] SSL certificates in place
-- [ ] Firewall rules configured
-- [ ] Adequate disk space
-
-#### Deployment Process
 1. Stop existing application:
 ```bash
-sudo systemctl stop bookstore
+sudo systemctl stop ebooksstore
 ```
 
-2. Copy new JAR file:
+2. Backup current version:
 ```bash
-sudo cp target/E-OnlineBooksWorldStore-1.0.0.jar /opt/bookstore/
+cp /opt/ebooksstore/current/E-OnlineBooksWorldStore.jar /opt/ebooksstore/backup/E-OnlineBooksWorldStore-$(date +%Y%m%d).jar
 ```
 
-3. Update configuration:
+3. Deploy new version:
 ```bash
-sudo cp application-prod.properties /opt/bookstore/config/
+cp target/E-OnlineBooksWorldStore-*.jar /opt/ebooksstore/current/E-OnlineBooksWorldStore.jar
 ```
 
-4. Start application:
+4. Update configuration:
 ```bash
-sudo systemctl start bookstore
+cp config/application-prod.properties /opt/ebooksstore/config/
 ```
 
-### 2. Docker Deployment
-
-#### Build Docker Image
+5. Start application:
 ```bash
-docker build -t bookstore:1.0.0 .
+sudo systemctl start ebooksstore
 ```
 
-#### Run Container
+#### Systemd Service Configuration
+
+Create `/etc/systemd/system/ebooksstore.service`:
+```ini
+[Unit]
+Description=E-Online Books World Store
+After=mysql.service
+
+[Service]
+User=ebooksstore
+ExecStart=/usr/bin/java -jar /opt/ebooksstore/current/E-OnlineBooksWorldStore.jar
+EnvironmentFile=/opt/ebooksstore/config/env
+WorkingDirectory=/opt/ebooksstore/current
+SuccessExitStatus=143
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### 5. Post-deployment Verification
+
+1. Check application status:
 ```bash
-docker run -d \
-  --name bookstore \
-  -p 7070:7070 \
-  -v /opt/bookstore/config:/config \
-  -v /opt/bookstore/logs:/logs \
-  bookstore:1.0.0
+sudo systemctl status ebooksstore
 ```
 
-### 3. Kubernetes Deployment
-
-#### Apply Configurations
+2. Verify logs:
 ```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/config.yaml
-kubectl apply -f k8s/secrets.yaml
-kubectl apply -f k8s/deployment.yaml
-kubectl apply -f k8s/service.yaml
+tail -f /var/log/ebooksstore/application.log
 ```
 
-## Monitoring & Maintenance
+3. Test endpoints:
+```bash
+curl -k https://localhost:7070/actuator/health
+```
 
-### 1. Health Checks
-- Monitor application health endpoint: `/actuator/health`
-- Check system metrics: `/actuator/metrics`
-- Monitor memory usage: `/actuator/metrics/jvm.memory.used`
+## Monitoring
+
+### 1. Application Health
+- Configure Spring Boot Actuator endpoints
+- Set up health checks
+- Monitor memory usage
+- Track response times
 
 ### 2. Logging
-```bash
-# View application logs
-tail -f /var/log/bookstore/application.log
+- Centralized logging setup
+- Log rotation policy
+- Error alerting
+- Performance monitoring
 
-# Monitor error logs
-grep ERROR /var/log/bookstore/application.log
+### 3. Metrics
+- JVM metrics
+- Database connection pool
+- API endpoint metrics
+- Custom business metrics
+
+## Backup Strategy
+
+### 1. Database Backup
+```bash
+#!/bin/bash
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+mysqldump -u ebooksstore_user -p ebooksstore > /backup/db/ebooksstore_${TIMESTAMP}.sql
 ```
 
-### 3. Backup Procedures
+### 2. Application Backup
 ```bash
-# Database backup
-mysqldump -u bookstore_user -p bookstore > backup.sql
-
-# Configuration backup
-cp -r /opt/bookstore/config /opt/backup/config
+#!/bin/bash
+TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+tar -czf /backup/app/ebooksstore_${TIMESTAMP}.tar.gz /opt/ebooksstore/
 ```
 
-## Security Considerations
-
-### 1. SSL Configuration
-- Enable HTTPS only
-- Configure SSL certificates
-- Implement HTTP to HTTPS redirect
-
-### 2. Database Security
-- Use strong passwords
-- Limit database user permissions
-- Enable SSL for database connections
-
-### 3. Application Security
-- Enable CORS protection
-- Set secure headers
-- Implement rate limiting
-- Enable audit logging
-
-## Rollback Procedures
+## Rollback Procedure
 
 ### 1. Application Rollback
 ```bash
 # Stop current version
-sudo systemctl stop bookstore
+sudo systemctl stop ebooksstore
 
 # Restore previous version
-sudo cp /opt/backup/E-OnlineBooksWorldStore-previous.jar /opt/bookstore/current.jar
+cp /opt/ebooksstore/backup/E-OnlineBooksWorldStore-previous.jar /opt/ebooksstore/current/E-OnlineBooksWorldStore.jar
 
-# Start previous version
-sudo systemctl start bookstore
+# Start service
+sudo systemctl start ebooksstore
 ```
 
 ### 2. Database Rollback
 ```bash
-# Restore database backup
-mysql -u bookstore_user -p bookstore < backup.sql
+mysql -u ebooksstore_user -p ebooksstore < /backup/db/ebooksstore_previous.sql
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Application Won't Start**
-   - Check logs in `/var/log/bookstore/`
-   - Verify database connectivity
-   - Check port availability
+1. Application won't start
+- Check Java version
+- Verify database connectivity
+- Check logs for errors
+- Verify memory allocation
 
-2. **Database Connection Issues**
-   - Verify database credentials
-   - Check network connectivity
-   - Validate database permissions
+2. Database connection issues
+- Check credentials
+- Verify network connectivity
+- Check database service status
+- Verify connection pool settings
 
-3. **Memory Issues**
-   - Check JVM heap settings
-   - Monitor memory usage
-   - Analyze garbage collection logs
+3. Performance issues
+- Monitor memory usage
+- Check database queries
+- Verify connection pool size
+- Review thread pool configuration
 
-## Performance Tuning
+## Security Considerations
 
-### 1. JVM Settings
-```bash
-JAVA_OPTS="-Xms2g -Xmx4g -XX:+UseG1GC"
-```
+### 1. Application Security
+- Enable HTTPS
+- Configure CORS
+- Set up rate limiting
+- Implement authentication
+- Enable security headers
 
-### 2. Database Optimization
-- Index frequently queried columns
-- Optimize slow queries
-- Configure connection pool
+### 2. Server Security
+- Configure firewall
+- Update system packages
+- Set up monitoring
+- Configure backup system
+- Implement access controls
 
-### 3. Application Settings
-- Enable caching
-- Configure thread pool size
-- Optimize logging levels
-
-## Support Contacts
-
-- **Technical Issues:** tech-support@example.com
-- **Database Issues:** dba@example.com
-- **Security Issues:** security@example.com
-
-## References
-
-- [Spring Boot Deployment Guide](https://docs.spring.io/spring-boot/docs/current/reference/html/deployment.html)
-- [MySQL Documentation](https://dev.mysql.com/doc/)
-- [Docker Documentation](https://docs.docker.com/)
+### 3. Database Security
+- Restrict network access
+- Use secure passwords
+- Regular security updates
+- Enable audit logging
+- Implement backup strategy
